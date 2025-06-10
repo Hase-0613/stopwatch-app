@@ -22,7 +22,7 @@
 
   <button onclick="startTimer()">スタート</button>
   <button onclick="recordLap()">ラップ</button>
-  <button onclick="resetTimer()">リセット</button> <!-- 🔁 追加 -->
+  <button onclick="resetTimer()">完全リセット</button>
 
   <div id="history">
     <h3>🕘 ラップ履歴（最新10件）</h3>
@@ -34,6 +34,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
   <script>
+    // 🔧 あなたのFirebase設定に書き換えてください
     const firebaseConfig = {
       apiKey: "AIzaSyBbbnoc-rJAQ4l5jA-I-PO9ShhVVQfkmoM",
       authDomain: "stopwatch-app-f8087.firebaseapp.com",
@@ -51,6 +52,7 @@
     let lapCount = 0;
     let startTime = null;
     let lastLapTime = null;
+    let lastRemoteLapTime = null;
 
     function formatTime(ms) {
       const totalSeconds = Math.floor(ms / 1000);
@@ -105,40 +107,50 @@
       db.ref("laps").push(lapData);
     }
 
-    // 🔁 リセット：Firebaseと画面を初期化
     function resetTimer() {
-      db.ref("control/startTime").remove(); // Firebaseから削除
+      db.ref("control/startTime").remove();
+      db.ref("laps").remove();
       clearInterval(timerId);
       timerId = null;
       lapCount = 0;
       startTime = null;
       lastLapTime = null;
+      lastRemoteLapTime = null;
       document.getElementById("totalTimeDisplay").textContent = `合計時間: 00:00:00`;
       document.getElementById("lapTimeDisplay").textContent = `ラップ時間: 00:00:00`;
+      document.getElementById("historyList").innerHTML = "";
     }
 
-    // 🔄 FirebaseからstartTimeを監視（他ユーザーと同期）
+    // 🔄 startTime をリアルタイム同期
     db.ref("control/startTime").on("value", (snapshot) => {
       const startMs = snapshot.val();
       if (startMs) {
         syncTimer(startMs);
       } else {
-        resetTimer(); // Firebaseが消されたらローカルもリセット
+        resetTimer(); // 他端末のリセットにも反応
       }
     });
 
-    // 🔄 Firebaseからラップ履歴を取得・更新
+    // 🔄 laps をリアルタイム表示＆ラップ時間リセット
     db.ref("laps").limitToLast(10).on("value", (snapshot) => {
       const historyList = document.getElementById("historyList");
       historyList.innerHTML = "";
       const laps = snapshot.val();
       if (!laps) return;
+
       const lapArray = Object.values(laps).sort((a, b) => a.timestamp - b.timestamp);
       lapArray.forEach((lap) => {
         const li = document.createElement("li");
         li.textContent = `ラップ ${lap.lapNumber}｜${lap.name}｜ラップ: ${lap.lapTime}｜合計: ${lap.totalTime}`;
         historyList.appendChild(li);
       });
+
+      // ⏱️ 最新ラップの timestamp でラップ時間をリセット
+      const latest = lapArray[lapArray.length - 1];
+      if (!lastRemoteLapTime || latest.timestamp > lastRemoteLapTime) {
+        lastRemoteLapTime = latest.timestamp;
+        lastLapTime = latest.timestamp;
+      }
     });
   </script>
 </body>
