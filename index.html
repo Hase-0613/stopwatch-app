@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>リアルタイム ストップウォッチ</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin-top: 30px; }
+    .clock { font-size: 36px; margin: 10px; }
+    input, button { font-size: 20px; margin: 10px; padding: 6px 12px; }
+    #history { margin-top: 30px; max-width: 500px; margin-left: auto; margin-right: auto; text-align: left; }
+    #history h3 { text-align: center; }
+    #historyList { font-size: 18px; list-style: none; padding: 0; }
+    #historyList li { border-bottom: 1px solid #ccc; padding: 6px 0; }
+  </style>
+</head>
+<body>
+  <h2>⏱ リアルタイム ストップウォッチ</h2>
+
+  <div>氏名：<input type="text" id="name" placeholder="名前を入力してください"></div>
+  <div class="clock" id="totalTimeDisplay">合計時間: 00:00:00</div>
+  <div class="clock" id="lapTimeDisplay">ラップ時間: 00:00:00</div>
+
+  <button onclick="startTimer()">スタート</button>
+  <button onclick="recordLap()">ラップ</button>
+
+  <div id="history">
+    <h3>🕘 ラップ履歴（最新10件）</h3>
+    <ul id="historyList"></ul>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <script>
+    // ✅ あなたの Firebase の設定に書き換えてください！
+    const firebaseConfig = {
+  apiKey: "AIzaSyBbbnoc-rJAQ4l5jA-I-PO9ShhVVQfkmoM",
+  authDomain: "stopwatch-app-f8087.firebaseapp.com",
+  databaseURL: "https://stopwatch-app-f8087-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "stopwatch-app-f8087",
+  storageBucket: "stopwatch-app-f8087.firebasestorage.app",
+  messagingSenderId: "162274706963",
+  appId: "1:162274706963:web:fa2ea0846da9c54bbce1e6"
+};
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let startTime = null;
+    let lastLapTime = null;
+    let timerId = null;
+    let lapCount = 0;
+
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+      const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+      const seconds = String(totalSeconds % 60).padStart(2, '0');
+      return `${hours}:${minutes}:${seconds}`;
+    }
+
+    function updateDisplay() {
+      const now = new Date();
+      const totalElapsed = now - startTime;
+      const lapElapsed = now - lastLapTime;
+      document.getElementById("totalTimeDisplay").textContent = `合計時間: ${formatTime(totalElapsed)}`;
+      document.getElementById("lapTimeDisplay").textContent = `ラップ時間: ${formatTime(lapElapsed)}`;
+    }
+
+    function startTimer() {
+      if (timerId) return;
+      startTime = new Date();
+      lastLapTime = new Date();
+      lapCount = 0;
+      updateDisplay();
+      timerId = setInterval(updateDisplay, 1000);
+    }
+
+    function recordLap() {
+      const name = document.getElementById("name").value.trim();
+      if (!name) {
+        alert("名前を入力してください！");
+        return;
+      }
+
+      const now = new Date();
+      lapCount++;
+      const lapMs = now - lastLapTime;
+      const totalMs = now - startTime;
+      const lapTime = formatTime(lapMs);
+      const totalTime = formatTime(totalMs);
+      lastLapTime = now;
+
+      const lapData = {
+        name,
+        lapTime,
+        totalTime,
+        lapNumber: lapCount,
+        timestamp: Date.now()
+      };
+
+      db.ref("laps").push(lapData);
+    }
+
+    // 📡 リアルタイム履歴表示
+    db.ref("laps").limitToLast(10).on("value", (snapshot) => {
+      const historyList = document.getElementById("historyList");
+      historyList.innerHTML = "";
+      const laps = snapshot.val();
+      if (!laps) return;
+      const lapArray = Object.values(laps).sort((a, b) => a.timestamp - b.timestamp);
+      lapArray.forEach((lap) => {
+        const li = document.createElement("li");
+        li.textContent = `ラップ ${lap.lapNumber}｜${lap.name}｜ラップ: ${lap.lapTime}｜合計: ${lap.totalTime}`;
+        historyList.appendChild(li);
+      });
+    });
+  </script>
+</body>
+</html>
