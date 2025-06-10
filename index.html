@@ -34,7 +34,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
   <script>
-    // 🔧 あなたのFirebase設定に書き換えてください
     const firebaseConfig = {
       apiKey: "AIzaSyBbbnoc-rJAQ4l5jA-I-PO9ShhVVQfkmoM",
       authDomain: "stopwatch-app-f8087.firebaseapp.com",
@@ -49,7 +48,6 @@
     const db = firebase.database();
 
     let timerId = null;
-    let lapCount = 0;
     let startTime = null;
     let lastLapTime = null;
     let lastRemoteLapTime = null;
@@ -73,7 +71,6 @@
     function syncTimer(startMs) {
       startTime = startMs;
       lastLapTime = startMs;
-      lapCount = 0;
       if (timerId) clearInterval(timerId);
       updateDisplay();
       timerId = setInterval(updateDisplay, 1000);
@@ -92,27 +89,36 @@
       }
 
       const now = Date.now();
-      lapCount++;
-      const lapTime = formatTime(now - lastLapTime);
-      const totalTime = formatTime(now - startTime);
+      const lapTimeFormatted = formatTime(now - lastLapTime);
+      const totalTimeFormatted = formatTime(now - startTime);
       lastLapTime = now;
 
-      const lapData = {
-        name,
-        lapTime,
-        totalTime,
-        lapNumber: lapCount,
-        timestamp: now
-      };
-      db.ref("laps").push(lapData);
+      const lapNumberRef = db.ref("control/lapNumber");
+
+      lapNumberRef.transaction(current => {
+        return (current || 0) + 1;
+      }, (error, committed, snapshot) => {
+        if (committed && snapshot.val() != null) {
+          const lapData = {
+            name,
+            lapTime: lapTimeFormatted,
+            totalTime: totalTimeFormatted,
+            lapNumber: snapshot.val(),
+            timestamp: now
+          };
+          db.ref("laps").push(lapData);
+        } else {
+          console.error("ラップ番号の更新に失敗:", error);
+        }
+      });
     }
 
     function resetTimer() {
       db.ref("control/startTime").remove();
+      db.ref("control/lapNumber").remove(); // ラップ番号初期化
       db.ref("laps").remove();
       clearInterval(timerId);
       timerId = null;
-      lapCount = 0;
       startTime = null;
       lastLapTime = null;
       lastRemoteLapTime = null;
@@ -121,17 +127,17 @@
       document.getElementById("historyList").innerHTML = "";
     }
 
-    // 🔄 startTime をリアルタイム同期
+    // タイマー同期
     db.ref("control/startTime").on("value", (snapshot) => {
       const startMs = snapshot.val();
       if (startMs) {
         syncTimer(startMs);
       } else {
-        resetTimer(); // 他端末のリセットにも反応
+        resetTimer();
       }
     });
 
-    // 🔄 laps をリアルタイム表示＆ラップ時間リセット
+    // ラップ履歴表示＋ラップ時間リセット
     db.ref("laps").limitToLast(10).on("value", (snapshot) => {
       const historyList = document.getElementById("historyList");
       historyList.innerHTML = "";
@@ -145,7 +151,6 @@
         historyList.appendChild(li);
       });
 
-      // ⏱️ 最新ラップの timestamp でラップ時間をリセット
       const latest = lapArray[lapArray.length - 1];
       if (!lastRemoteLapTime || latest.timestamp > lastRemoteLapTime) {
         lastRemoteLapTime = latest.timestamp;
