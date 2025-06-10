@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>共有ストップウォッチ</title>
+  <title>共有ストップウォッチ（管理者制限付き）</title>
   <style>
     body { font-family: Arial; text-align: center; margin-top: 30px; }
     .clock { font-size: 36px; margin: 10px; }
@@ -16,13 +17,17 @@
 <body>
   <h2>⏱ 共有ストップウォッチ</h2>
 
-  <div>氏名：<input type="text" id="name" placeholder="名前を入力してください"></div>
+  <div>
+    氏名：<input type="text" id="name" placeholder="名前を入力してください">
+    <span id="userName" style="margin-left: 20px; font-weight: bold;">（未ログイン）</span>
+  </div>
+
   <div class="clock" id="totalTimeDisplay">合計時間: 00:00:00</div>
   <div class="clock" id="lapTimeDisplay">ラップ時間: 00:00:00</div>
 
   <button onclick="startTimer()">スタート</button>
   <button onclick="recordLap()">ラップ</button>
-  <button onclick="resetTimer()">完全リセット</button>
+  <button id="resetBtn" style="display:none" onclick="resetTimer()">完全リセット（管理者専用）</button>
 
   <div id="history">
     <h3>🕘 ラップ履歴（最新10件）</h3>
@@ -32,6 +37,7 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -51,6 +57,8 @@
     let startTime = null;
     let lastLapTime = null;
     let lastRemoteLapTime = null;
+
+    const adminEmail = "hase.h.0613@gmail.com";
 
     function formatTime(ms) {
       const totalSeconds = Math.floor(ms / 1000);
@@ -115,7 +123,7 @@
 
     function resetTimer() {
       db.ref("control/startTime").remove();
-      db.ref("control/lapNumber").remove(); // ラップ番号初期化
+      db.ref("control/lapNumber").remove();
       db.ref("laps").remove();
       clearInterval(timerId);
       timerId = null;
@@ -127,7 +135,7 @@
       document.getElementById("historyList").innerHTML = "";
     }
 
-    // タイマー同期
+    // startTime 同期
     db.ref("control/startTime").on("value", (snapshot) => {
       const startMs = snapshot.val();
       if (startMs) {
@@ -137,7 +145,7 @@
       }
     });
 
-    // ラップ履歴表示＋ラップ時間リセット
+    // ラップ履歴
     db.ref("laps").limitToLast(10).on("value", (snapshot) => {
       const historyList = document.getElementById("historyList");
       historyList.innerHTML = "";
@@ -157,6 +165,31 @@
         lastLapTime = latest.timestamp;
       }
     });
+
+    // ログイン処理
+    firebase.auth().onAuthStateChanged(user => {
+      const userNameEl = document.getElementById("userName");
+      const resetBtn = document.getElementById("resetBtn");
+
+      if (user) {
+        userNameEl.textContent = `こんにちは、${user.displayName}`;
+        resetBtn.style.display = user.email === adminEmail ? "inline-block" : "none";
+      } else {
+        userNameEl.textContent = "（未ログイン）";
+        resetBtn.style.display = "none";
+      }
+    });
+
+    // ログインボタン表示
+    window.onload = () => {
+      const btn = document.createElement("button");
+      btn.textContent = "Googleでログイン";
+      btn.onclick = () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider);
+      };
+      document.body.insertBefore(btn, document.getElementById("history"));
+    };
   </script>
 </body>
 </html>
