@@ -1,190 +1,47 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>共有ストップウォッチ</title>
+  <title>共有ストップウォッチ（管理者制限付き）</title>
   <style>
-    /* Google Fontsからフォントをインポート */
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Roboto+Mono:wght@500&display=swap');
-
-    body {
-        /* フォント設定 */
-        font-family: 'Noto Sans JP', sans-serif;
-        text-align: center;
-        
-        /* ダークテーマの配色 */
-        background-color: #1a1a1a;
-        color: #f0f0f0;
-
-        /* スムーズな色の変化 */
-        transition: background-color 0.3s, color 0.3s;
-        
-        /* 上下の余白を調整 */
-        margin: 0;
-        padding: 40px 15px;
-    }
-
-    /* アプリ全体を囲むコンテナ */
-    .stopwatch-container {
-        max-width: 500px;
-        margin: auto;
-        background-color: #2c2c2c;
-        border-radius: 12px;
-        padding: 30px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    h2 {
-        font-size: 28px;
-        color: #66ccff; /* アクセントカラー */
-        margin-bottom: 30px;
-    }
-
-    .clock {
-        font-family: 'Roboto Mono', monospace; /* 数字用の等幅フォント */
-        font-size: 48px; /* サイズを大きくして視認性アップ */
-        margin: 15px 0;
-        letter-spacing: 2px;
-        font-weight: 500;
-        color: #ffffff;
-        text-shadow: 0 0 5px rgba(102, 204, 255, 0.5); /* ほんのり光彩効果 */
-    }
-
-    /* ラップタイム表示を少し小さく */
-    #lapTimeDisplay {
-        font-size: 24px;
-        color: #a0a0a0;
-        text-shadow: none;
-    }
-
-    /* ボタンの共通スタイル */
-    button {
-        font-family: 'Noto Sans JP', sans-serif;
-        font-size: 18px;
-        font-weight: 700; /* 太字 */
-        padding: 12px 24px;
-        margin: 10px 5px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        color: #fff;
-    }
-
-    /* ボタンにマウスを乗せた時の効果 */
-    button:hover {
-        transform: translateY(-2px); /* 少し浮き上がる */
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    /* スタートボタン */
-    button:nth-of-type(1) {
-        background-color: #007bff;
-    }
-    button:nth-of-type(1):hover {
-        background-color: #0056b3;
-    }
-
-    /* ラップボタン */
-    button:nth-of-type(2) {
-        background-color: #28a745;
-    }
-    button:nth-of-type(2):hover {
-        background-color: #1e7e34;
-    }
-
-    /* リセットボタン */
-    button:nth-of-type(3) {
-        background-color: #dc3545;
-    }
-    button:nth-of-type(3):hover {
-        background-color: #b02a37;
-    }
-
-
-    /* 氏名入力欄 */
-    input[type="text"] {
-        font-family: 'Noto Sans JP', sans-serif;
-        font-size: 18px;
-        padding: 10px;
-        margin-bottom: 20px;
-        border: 2px solid #555;
-        border-radius: 8px;
-        background-color: #333;
-        color: #f0f0f0;
-        text-align: center;
-    }
-    input[type="text"]:focus {
-        outline: none;
-        border-color: #66ccff;
-    }
-
-    /* 履歴セクション */
-    #history {
-        margin-top: 40px;
-    }
-
-    #history h3 {
-        color: #f0f0f0;
-    }
-
-    #historyList {
-        font-size: 16px;
-        list-style: none;
-        padding: 0;
-        max-height: 250px; /* 高さを固定してスクロール可能に */
-        overflow-y: auto; /* 内容が増えたらスクロールバーを表示 */
-    }
-
-    #historyList li {
-        background-color: #3a3a3a;
-        padding: 12px;
-        border-bottom: 1px solid #444;
-        transition: background-color 0.2s;
-    }
-    /* 奇数行と偶数行で色を変えて見やすくする */
-    #historyList li:nth-child(even) {
-        background-color: #333;
-    }
-
-    #historyList li:last-child {
-        border-bottom: none;
-    }
-
-    /* スクロールバーのスタイル（おまけ）*/
-    #historyList::-webkit-scrollbar {
-        width: 8px;
-    }
-    #historyList::-webkit-scrollbar-track {
-        background: #2c2c2c;
-    }
-    #historyList::-webkit-scrollbar-thumb {
-        background-color: #555;
-        border-radius: 4px;
-    }
+    body { font-family: Arial; text-align: center; margin-top: 30px; }
+    .clock { font-size: 36px; margin: 10px; }
+    input, button { font-size: 20px; margin: 10px; padding: 6px 12px; }
+    #history { margin-top: 30px; max-width: 500px; margin: auto; text-align: left; }
+    #history h3 { text-align: center; }
+    #historyList { font-size: 18px; list-style: none; padding: 0; }
+    #historyList li { border-bottom: 1px solid #ccc; padding: 6px 0; }
+    #authArea { margin-bottom: 10px; }
   </style>
 </head>
 <body>
+  <h2>⏱ 共有ストップウォッチ</h2>
 
-  <div class="stopwatch-container">
-    <h2>⏱ 共有ストップウォッチ</h2>
+  <div id="authArea">
+    <button onclick="login()">Googleでログイン</button>
+    <span id="userName">(未ログイン)</span>
+  </div>
 
-    <div>氏名：<input type="text" id="name" placeholder="名前を入力してください"></div>
-    <div class="clock" id="totalTimeDisplay">合計時間: 00:00:00</div>
-    <div class="clock" id="lapTimeDisplay">ラップ時間: 00:00:00</div>
+  <div>
+    氏名：<input type="text" id="name" placeholder="名前を入力してください">
+  </div>
 
-    <button onclick="startTimer()">スタート</button>
-    <button onclick="recordLap()">ラップ</button>
-    <button onclick="resetTimer()">完全リセット</button>
+  <div class="clock" id="totalTimeDisplay">合計時間: 00:00:00</div>
+  <div class="clock" id="lapTimeDisplay">ラップ時間: 00:00:00</div>
 
-    <div id="history">
-      <h3>🕘 ラップ履歴（最新10件）</h3>
-      <ul id="historyList"></ul>
-    </div>
+  <button onclick="startTimer()">スタート</button>
+  <button onclick="recordLap()">ラップ</button>
+  <button id="resetBtn" style="display:none" onclick="resetTimer()">完全リセット（管理者専用）</button>
+
+  <div id="history">
+    <h3>🕘 ラップ履歴（最新10件）</h3>
+    <ul id="historyList"></ul>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -196,6 +53,8 @@
       messagingSenderId: "162274706963",
       appId: "1:162274706963:web:fa2ea0846da9c54bbce1e6"
     };
+
+    const adminEmail = "hase.h.0613@gmail.com";
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -247,7 +106,6 @@
       lastLapTime = now;
 
       const lapNumberRef = db.ref("control/lapNumber");
-
       lapNumberRef.transaction(current => {
         return (current || 0) + 1;
       }, (error, committed, snapshot) => {
@@ -260,15 +118,13 @@
             timestamp: now
           };
           db.ref("laps").push(lapData);
-        } else {
-          console.error("ラップ番号の更新に失敗:", error);
         }
       });
     }
 
     function resetTimer() {
       db.ref("control/startTime").remove();
-      db.ref("control/lapNumber").remove(); // ラップ番号初期化
+      db.ref("control/lapNumber").remove();
       db.ref("laps").remove();
       clearInterval(timerId);
       timerId = null;
@@ -280,38 +136,54 @@
       document.getElementById("historyList").innerHTML = "";
     }
 
-    // タイマー同期
     db.ref("control/startTime").on("value", (snapshot) => {
       const startMs = snapshot.val();
       if (startMs) {
         syncTimer(startMs);
       } else {
-        // startTimeがnullならリセット処理（他のブラウザでリセットされた場合）
-        if(timerId) resetTimer();
+        resetTimer();
       }
     });
 
-    // ラップ履歴表示＋ラップ時間リセット
     db.ref("laps").limitToLast(10).on("value", (snapshot) => {
       const historyList = document.getElementById("historyList");
       historyList.innerHTML = "";
       const laps = snapshot.val();
       if (!laps) return;
 
-      const lapArray = Object.values(laps).sort((a, b) => b.timestamp - a.timestamp); // 新しい順にソート
+      const lapArray = Object.values(laps).sort((a, b) => a.timestamp - b.timestamp);
       lapArray.forEach((lap) => {
         const li = document.createElement("li");
         li.textContent = `ラップ ${lap.lapNumber}｜${lap.name}｜ラップ: ${lap.lapTime}｜合計: ${lap.totalTime}`;
         historyList.appendChild(li);
       });
 
-      // 最新のラップタイムを同期
-      if (lapArray.length > 0) {
-          const latest = lapArray[0];
-          if (!lastRemoteLapTime || latest.timestamp > lastRemoteLapTime) {
-            lastRemoteLapTime = latest.timestamp;
-            lastLapTime = latest.timestamp;
-          }
+      const latest = lapArray[lapArray.length - 1];
+      if (!lastRemoteLapTime || latest.timestamp > lastRemoteLapTime) {
+        lastRemoteLapTime = latest.timestamp;
+        lastLapTime = latest.timestamp;
+      }
+    });
+
+    function login() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider);
+    }
+
+    firebase.auth().onAuthStateChanged(user => {
+      const userName = document.getElementById("userName");
+      const resetBtn = document.getElementById("resetBtn");
+
+      if (user) {
+        userName.textContent = `${user.displayName}`;
+        if (user.email === adminEmail) {
+          resetBtn.style.display = "inline-block";
+        } else {
+          resetBtn.style.display = "none";
+        }
+      } else {
+        userName.textContent = "(未ログイン)";
+        resetBtn.style.display = "none";
       }
     });
   </script>
