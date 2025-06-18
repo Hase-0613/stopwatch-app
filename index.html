@@ -140,7 +140,7 @@
     let lastLapTime = null;
     let lastRemoteLapTime = null;
 
-    function formatTime(ms) {
+    function formatTotalTime(ms) {
       const totalSeconds = Math.floor(ms / 1000);
       const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
       const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
@@ -148,12 +148,19 @@
       return `${hours}:${minutes}:${seconds}`;
     }
 
+    function formatLapTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+      const seconds = String(totalSeconds % 60).padStart(2, '0');
+      return `${minutes}:${seconds}`;
+    }
+
     function updateDisplay() {
       const now = Date.now();
       const totalElapsed = now - startTime;
       const lapElapsed = now - lastLapTime;
-      document.getElementById("totalTimeDisplay").textContent = `合計時間: ${formatTime(totalElapsed)}`;
-      document.getElementById("lapTimeDisplay").textContent = `ラップ時間: ${formatTime(lapElapsed)}`;
+      document.getElementById("totalTimeDisplay").textContent = `合計時間: ${formatTotalTime(totalElapsed)}`;
+      document.getElementById("lapTimeDisplay").textContent = `ラップ時間: ${formatLapTime(lapElapsed)}`;
     }
 
     function syncTimer(startMs) {
@@ -177,8 +184,8 @@
       }
 
       const now = Date.now();
-      const lapTimeFormatted = formatTime(now - lastLapTime);
-      const totalTimeFormatted = formatTime(now - startTime);
+      const lapTimeFormatted = formatLapTime(now - lastLapTime);
+      const totalTimeFormatted = formatTotalTime(now - startTime);
       lastLapTime = now;
 
       const lapNumberRef = db.ref("control/lapNumber");
