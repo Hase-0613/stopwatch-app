@@ -1,132 +1,118 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <title>おろち円安チームリレー記録</title>
- <style>
-   body {
-     font-family: 'Segoe UI', Arial, sans-serif;
-     background-color: #f9f9f9;
-     color: #333;
-     text-align: center;
-     margin: 0;
-     padding: 30px 10px;
-   }
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-   h2 {
-     font-size: 28px;
-     color: #333;
-     margin-bottom: 20px;
-   }
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
 
-   .clock {
-     font-size: 36px;
-     margin: 10px 0;
-     color: #007BFF;
-     font-weight: bold;
-   }
+    h2 {
+      color: #007BFF;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
 
-   input, button {
-     font-size: 18px;
-     margin: 10px;
-     padding: 10px 20px;
-     border: none;
-     border-radius: 6px;
-   }
+    .clock {
+      font-size: 32px;
+      font-weight: bold;
+      color: #007BFF;
+      margin: 8px 0;
+    }
 
-   input {
-     border: 1px solid #ccc;
-     width: 250px;
-     max-width: 80%;
-   }
+    input {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
 
-   button {
-     background-color: #007BFF;
-     color: white;
-     cursor: pointer;
-     transition: background-color 0.3s;
-   }
+    button {
+      width: 100%;
+      font-size: 16px;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background-color: #007BFF;
+      color: white;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
 
-   button:hover {
-     background-color: #0056b3;
-   }
+    button:hover {
+      background-color: #0056b3;
+    }
 
-   #resetBtn {
-     background-color: #dc3545;
-   }
+    #resetBtn {
+      background-color: #dc3545;
+    }
 
-   #resetBtn:hover {
-     background-color: #a71d2a;
-   }
+    #resetBtn:hover {
+      background-color: #a71d2a;
+    }
 
-   #authArea {
-     margin-bottom: 20px;
-   }
+    #history {
+      margin-top: 30px;
+      background-color: #fefefe;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.05);
+    }
 
-   #history {
-     margin-top: 40px;
-     max-width: 600px;
-     margin-left: auto;
-     margin-right: auto;
-     text-align: left;
-     background-color: white;
-     padding: 20px;
-     border-radius: 12px;
-     box-shadow: 0 0 10px rgba(0,0,0,0.1);
-   }
-
-   #history h3 {
-     text-align: center;
-     color: #555;
-   }
-
-   #historyList {
-     font-size: 16px;
-     list-style: none;
-     padding: 0;
-     margin-top: 10px;
-   }
-
-   #historyList li {
-     border-bottom: 1px solid #eee;
-     padding: 8px 0;
-   }
-
-   @media (max-width: 600px) {
-     .clock {
-       font-size: 28px;
-     }
-     input, button {
-       font-size: 16px;
-       width: 90%;
-       padding: 8px;
-     }
-   }
- </style>
-
+    @media (max-width: 600px) {
+      .clock {
+        font-size: 28px;
+      }
+      button {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h2>⏱ 共有ストップウォッチ</h2>
+  <div class="container">
+    <h2>⏱ 共有ストップウォッチ</h2>
 
-  <div id="authArea">
-    <button onclick="login()">Googleでログイン</button>
-    <span id="userName">(未ログイン)</span>
-  </div>
+    <div id="authArea">
+      <button onclick="login()">Googleでログイン</button>
+      <span id="userName">(未ログイン)</span>
+    </div>
 
-  <div>
-    氏名：<input type="text" id="name" placeholder="名前を入力してください">
-  </div>
+    <input type="text" id="name" placeholder="名前を入力してください">
 
-  <div class="clock" id="totalTimeDisplay">合計時間: 00:00:00</div>
-  <div class="clock" id="lapTimeDisplay">ラップ時間: 00:00:00</div>
+    <div class="clock" id="totalTimeDisplay">合計時間: 00:00:00</div>
+    <div class="clock" id="lapTimeDisplay">ラップ時間: 00:00:00</div>
 
-  <button id="startBtn" style="display:none" onclick="startTimer()">スタート</button>
-  <button onclick="recordLap()">ラップ</button>
-  <button id="resetBtn" style="display:none" onclick="resetTimer()">完全リセット（管理者専用）</button>
+    <button id="startBtn" style="display:none" onclick="startTimer()">スタート</button>
+    <button onclick="recordLap()">ラップ</button>
+    <button id="resetBtn" style="display:none" onclick="resetTimer()">完全リセット（管理者専用）</button>
 
-  <div id="history">
-    <h3>🕘 ラップ履歴（最新10件）</h3>
-    <ul id="historyList"></ul>
+    <div id="history">
+      <h3>🕘 ラップ履歴（最新10件）</h3>
+      <ul id="historyList"></ul>
+    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
