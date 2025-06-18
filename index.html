@@ -121,7 +121,7 @@
   <div class="clock" id="totalTimeDisplay">合計時間: 00:00:00</div>
   <div class="clock" id="lapTimeDisplay">ラップ時間: 00:00:00</div>
 
-  <button onclick="startTimer()">スタート</button>
+  <button id="startBtn" onclick="startTimer()">スタート</button>
   <button onclick="recordLap()">ラップ</button>
   <button id="resetBtn" style="display:none" onclick="resetTimer()">完全リセット（管理者専用）</button>
 
@@ -262,21 +262,25 @@
     }
 
     firebase.auth().onAuthStateChanged(user => {
-      const userName = document.getElementById("userName");
-      const resetBtn = document.getElementById("resetBtn");
+  const userName = document.getElementById("userName");
+  const resetBtn = document.getElementById("resetBtn");
+  const startBtn = document.getElementById("startBtn");
 
-      if (user) {
-        userName.textContent = `${user.displayName}`;
-        if (user.email === adminEmail) {
-          resetBtn.style.display = "inline-block";
-        } else {
-          resetBtn.style.display = "none";
-        }
-      } else {
-        userName.textContent = "(未ログイン)";
-        resetBtn.style.display = "none";
-      }
-    });
+  if (user) {
+    userName.textContent = `${user.displayName}`;
+    if (user.email === adminEmail) {
+      resetBtn.style.display = "inline-block";
+      startBtn.style.display = "inline-block";
+    } else {
+      resetBtn.style.display = "none";
+      startBtn.style.display = "none"; // 管理者以外には非表示
+    }
+  } else {
+    userName.textContent = "(未ログイン)";
+    resetBtn.style.display = "none";
+    startBtn.style.display = "none";
+  }
+});
   </script>
 </body>
 </html>
